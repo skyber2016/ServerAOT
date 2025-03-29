@@ -1,5 +1,4 @@
 ﻿using System.Net.Sockets;
-using static Core.Logging;
 
 namespace Core
 {
@@ -12,8 +11,10 @@ namespace Core
         protected readonly Socket _proxy;
         protected readonly Channel _channel;
 
-        private readonly WriteDelegate _logger = Write(typeof(APacketHandler));
-        protected abstract Task PacketHandleAsync(CancellationToken cancellationToken);
+        public readonly string _requestId = Guid.NewGuid().ToString("N");
+
+        private readonly ILogger _logger = LoggerManager.CreateLogger();
+        protected abstract Task PacketHandleAsync(UserContext context, CancellationToken cancellationToken);
         protected APacketHandler(Socket client, Socket proxy, Channel channel)
         {
             _client = client;
@@ -27,16 +28,16 @@ namespace Core
             _writer = new BinaryWriter(_memoryStream);
         }
 
-        public async Task<bool> HandleAsync(CancellationToken cancellationToken)
+        public async Task<bool> HandleAsync(UserContext context, CancellationToken cancellationToken)
         {
             try
             {
-                await HandleAsync(cancellationToken);
+                await PacketHandleAsync(context, cancellationToken);
                 return true;
             }
             catch (Exception ex)
             {
-                _logger("Exception when handle packet. Exception: " + ex.GetBaseException().Message);
+                _logger.Error("Exception when handle packet. Exception: " + ex.GetBaseException().Message);
                 return false;
             }
         }

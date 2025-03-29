@@ -1,41 +1,42 @@
 ﻿using System.Net.Sockets;
 using System.Text;
 using Core;
-using static Core.Logging;
 
-namespace GameServer
+namespace LoginServer
 {
     public class LoginResponsePacket : APacketHandler
     {
         private ushort Length { get; set; }
         private ushort Type { get; set; }
         private uint AccountId { get; set; }
-        private uint UserId { get; set; }
+        private uint SessionId { get; set; }
         private uint Port { get; set; }
         private int Padding { get; set; }
 
         // 32 byte
         private byte[] GameSeverIP { get; set; }
 
-        private byte[] ProxyGameServerIP => Encoding.UTF8.GetBytes("127.0.0.1");
+        private byte[] ProxyGameServerIP => Encoding.UTF8.GetBytes(ApplicationContext.Instance.AppConfig.GameServer.LocalIP);
 
-        private readonly WriteDelegate _logger = Write(typeof(LoginResponsePacket));
+        private readonly ILogger _logger = LoggerManager.CreateLogger();
 
         public LoginResponsePacket(Socket client, Socket proxy, Channel channel) : base(client, proxy, channel)
         {
         }
 
-        protected override async Task PacketHandleAsync(CancellationToken cancellationToken)
+        protected override async Task PacketHandleAsync(UserContext context, CancellationToken cancellationToken)
         {
             this.LoadData();
-            if(IsLoginSuccess())
+            if (IsLoginSuccess())
             {
-                _logger($"{_client.RemoteEndPoint} [acc_id={AccountId}] login success.");
+                _logger.Info($"{_client.RemoteEndPoint} [acc_id={AccountId}] [sess={this.SessionId}] [{Encoding.UTF8.GetString(this.GameSeverIP).Trim('\0')}:{this.Port}] login success.");
+                Array.Clear(GameSeverIP);
                 Array.Copy(ProxyGameServerIP, 0, GameSeverIP, 0, ProxyGameServerIP.Length);
+                this.Port = (uint)ApplicationContext.Instance.AppConfig.GameServer.LocalPort;
             }
             else
             {
-                _logger($"{_client.RemoteEndPoint} Login failed.");
+                _logger.Info($"{_client.RemoteEndPoint} Login failed.");
             }
             var finalBuffer = this.GetBytes();
             await _client.SendAsync(finalBuffer, cancellationToken);
@@ -46,7 +47,7 @@ namespace GameServer
             this.Length = _reader.ReadUInt16();
             this.Type = _reader.ReadUInt16();
             this.AccountId = _reader.ReadUInt32();
-            this.UserId = _reader.ReadUInt32();
+            this.SessionId = _reader.ReadUInt32();
             this.Port = _reader.ReadUInt32();
             this.Padding = _reader.ReadInt32();
             this.GameSeverIP = _reader.ReadBytes(32);
@@ -59,7 +60,7 @@ namespace GameServer
             writer.Write(this.Length);
             writer.Write(this.Type);
             writer.Write(this.AccountId);
-            writer.Write(this.UserId);
+            writer.Write(this.SessionId);
             writer.Write(this.Port);
             writer.Write(this.Padding);
             writer.Write(this.GameSeverIP);

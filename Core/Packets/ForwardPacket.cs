@@ -1,7 +1,6 @@
 ﻿using System.Net.Sockets;
-using Core;
 
-namespace GameServer.Packets
+namespace Core
 {
     public class ForwardPacket : APacketHandler
     {
@@ -9,20 +8,21 @@ namespace GameServer.Packets
         {
         }
 
-        protected override async Task PacketHandleAsync(CancellationToken cancellationToken)
+        protected override async Task PacketHandleAsync(UserContext context, CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
             {
                 return;
             }
             byte[] buffer = _memoryStream.ToArray();
+
             if (_channel == Channel.C2S)
             {
-                await _proxy.SendAsync(buffer, cancellationToken);
+                await _proxy.SendAsync(buffer);
             }
             else
             {
-                await _client.SendAsync(buffer, cancellationToken);
+                await _client.SendAsync(buffer);
             }
         }
     }

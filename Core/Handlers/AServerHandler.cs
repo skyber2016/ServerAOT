@@ -1,8 +1,7 @@
 ﻿using System.Net;
 using System.Net.Sockets;
-using static Core.Logging;
 
-namespace Core.Providers
+namespace Core
 {
     public abstract class AServerHandler : IDisposable
     {
@@ -10,8 +9,8 @@ namespace Core.Providers
         protected abstract Task OnConnected(Socket client, CancellationToken cancellationToken);
 
         protected readonly Socket _severSocket;
-        protected WriteDelegate _logger = Logging.Write(typeof(AServerHandler));
-
+        private ILogger _logger = LoggerManager.CreateLogger();
+        public readonly string _requestId = Guid.NewGuid().ToString("N");
         protected AServerHandler()
         {
             _severSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -21,7 +20,7 @@ namespace Core.Providers
         {
             _severSocket.Bind(new IPEndPoint(IPAddress.Any, Port));
             _severSocket.Listen();
-            _logger($"Server started on port {Port}");
+            _logger.Info($"Server started on port {Port}");
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
@@ -29,19 +28,19 @@ namespace Core.Providers
             while (!cancellationToken.IsCancellationRequested)
             {
                 Socket client = await _severSocket.AcceptAsync(cancellationToken);
-                _logger($"Client {client.RemoteEndPoint} connected");
+                _logger.Info($"Client {client.RemoteEndPoint} connected");
                 await this.OnConnected(client, cancellationToken);
             }
         }
 
         public virtual void Dispose()
         {
-            if(_severSocket != null)
+            if (_severSocket != null)
             {
                 _severSocket.Dispose();
-                _logger("Disposing server");
+                _logger.Info("Disposing server");
             }
-            _logger("Server stopped");
+            _logger.Info("Server stopped");
         }
     }
 }

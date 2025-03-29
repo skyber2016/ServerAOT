@@ -1,21 +1,20 @@
 ﻿using System.Net.Sockets;
 using Core;
 
-namespace GameServer;
+namespace LoginServer;
 
-public class GameServerHandler : AServerHandler
+public class LoginServerHandler : AServerHandler
 {
-    protected override int Port => ApplicationContext.Instance.AppConfig.GameServer.LocalPort;
-
     private readonly ILogger _logger = LoggerManager.CreateLogger();
-
-    public GameServerHandler() : base()
+    public LoginServerHandler() : base()
     {
     }
 
+    protected override int Port => ApplicationContext.Instance.AppConfig.LoginServer.LocalPort;
+
     protected override async Task OnConnected(Socket client, CancellationToken cancellationToken)
     {
-        var handler = new GameClientHandler(client);
+        var handler = new LoginClientHandler(client);
         if (!await handler.InitAsync(cancellationToken))
         {
             _logger.Error("Failed to init proxy");
@@ -30,5 +29,4 @@ public class GameServerHandler : AServerHandler
             Console.WriteLine($"Client {client.RemoteEndPoint} has disconnected");
         }, cancellationToken);
     }
-
 }

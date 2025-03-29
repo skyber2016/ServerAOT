@@ -4,18 +4,18 @@ namespace Core;
 
 public static class PacketRegistry
 {
+    private static readonly ILogger _logger = LoggerManager.CreateLogger();
     private static readonly IDictionary<PacketType, Func<Socket, Socket, Channel, APacketHandler>> _handlers = new Dictionary<PacketType, Func<Socket, Socket, Channel, APacketHandler>>();
     public static bool TryAdd(PacketType packetType, Func<Socket, Socket, Channel, APacketHandler> handler)
     {
-        var logger = Logging.Write(typeof(PacketRegistry));
-        if(_handlers.TryAdd(packetType, handler))
+        if (_handlers.TryAdd(packetType, handler))
         {
-            logger($"Added packet handler for {packetType}");
+            _logger.Info($"Added packet handler for {packetType}");
             return true;
         }
         else
         {
-            logger($"Failed to add packet handler for {packetType}");
+            _logger.Error($"Failed to add packet handler for {packetType}");
             return false;
         }
     }
