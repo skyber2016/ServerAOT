@@ -11,6 +11,7 @@ public enum PacketType : int
     /// Click NPC
     /// </summary>
     ClickNpcRequest = 2031,
-    NPCAction = 2032
+    NPCAction = 2032,
+    AddinationItemRequest = 2041
 
 }

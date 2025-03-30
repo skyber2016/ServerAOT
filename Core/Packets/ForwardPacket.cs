@@ -18,11 +18,11 @@ namespace Core
 
             if (_channel == Channel.C2S)
             {
-                await _proxy.SendAsync(buffer);
+                await _proxy.SendAsync(buffer, cancellationToken);
             }
             else
             {
-                await _client.SendAsync(buffer);
+                await _client.SendAsync(buffer, cancellationToken);
             }
         }
     }

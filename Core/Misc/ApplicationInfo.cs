@@ -11,5 +11,7 @@ public class ApplicationInfo
 
     public static readonly string PathToLog = Path.Combine(AppBaseDirectory, "Logs", $"{DateTime.Now.ToString("yyyy-MM-dd")}.log");
 
+    public static readonly TimeSpan TimeSpanMax = TimeSpan.FromDays(365);
+
     #endregion
 }

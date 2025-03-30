@@ -40,12 +40,10 @@ public abstract class AClientHandler : IDisposable
     public async Task HandleAsync(CancellationToken cancellationToken)
     {
         var cancellationTokenSource = new CancellationTokenSource();
-        using var clientNetwork = new NetworkStream(_clientSocket, true);
-        using var serverNetwork = new NetworkStream(_serverSocket, true);
         var tasks = new[]
         {
-            HandleNetworkAsync(clientNetwork, Channel.C2S, cancellationTokenSource.Token),
-            HandleNetworkAsync(serverNetwork, Channel.S2C, cancellationTokenSource.Token),
+            HandleNetworkAsync(_clientSocket, Channel.C2S, cancellationTokenSource.Token),
+            HandleNetworkAsync(_serverSocket, Channel.S2C, cancellationTokenSource.Token),
             Task.Run(async () =>
             {
                 while (!cancellationToken.IsCancellationRequested)
@@ -58,19 +56,17 @@ public abstract class AClientHandler : IDisposable
         cancellationTokenSource.Cancel();
     }
 
-    private async Task HandleNetworkAsync(NetworkStream network, Channel channel, CancellationToken cancellationToken)
+    private async Task HandleNetworkAsync(Socket network, Channel channel, CancellationToken cancellationToken)
     {
-        var socket = network.Socket;
-        var endpoint = channel == Channel.C2S ? socket.RemoteEndPoint : socket.LocalEndPoint;
         try
         {
             byte[] buffers = new byte[1024 * 100];
             while (!cancellationToken.IsCancellationRequested)
             {
-                var totalBytes = await network.ReadAsync(buffers, cancellationToken);
+                var totalBytes = await network.ReceiveAsync(buffers, cancellationToken);
                 if (totalBytes == 0)
                 {
-                    _logger.Info($"Connection {endpoint} closed");
+                    _logger.Info($"Connection closed");
                     break;
                 }
                 int sourceIndex = 0;
@@ -85,11 +81,11 @@ public abstract class AClientHandler : IDisposable
         }
         catch (SocketException ex)
         {
-            _logger.Error($"Client {endpoint} disconnected (socket error): {ex.GetBaseException().Message}");
+            _logger.Error($"Client disconnected (socket error): {ex.GetBaseException().Message}");
         }
         catch (Exception ex)
         {
-            _logger.Error($"Client {endpoint} error: {ex.GetBaseException().Message}");
+            _logger.Error($"Client error: {ex.GetBaseException().Message}");
         }
 
     }

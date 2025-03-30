@@ -9,11 +9,16 @@ public class ApplicationContext
 
     public AppConfig AppConfig { get; private set; }
 
-    public NpcEntity[] Npc { get; set; }
+    public NpcEntity[] Npc { get; set; } = [];
+
+    public NpcDelayEntity[] NpcDelays { get; set; } = [];
+
+    public IMemoryCacheService Caching { get; private set; }
 
     public ApplicationContext()
     {
         this.AppConfig = this.LoadConfig("appsettings.json");
+        this.Caching = new MemoryCacheService(TimeSpan.FromSeconds(1));
     }
 
 

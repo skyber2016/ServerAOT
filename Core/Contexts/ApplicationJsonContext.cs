@@ -12,6 +12,8 @@ namespace Core
     [JsonSerializable(typeof(NpcEntity))]
     [JsonSerializable(typeof(NpcEntity[]))]
     [JsonSerializable(typeof(NpcDelayEntity[]))]
+    [JsonSerializable(typeof(UserEntity[]))]
+    [JsonSerializable(typeof(ItemexEntity[]))]
     public partial class ApplicationJsonContext : JsonSerializerContext
     {
     }
