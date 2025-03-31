@@ -24,18 +24,13 @@ namespace GameServer.Packets
             var buffers = _memoryStream.ToArray();
 			_logger.Debug($"Addination item [acc_id={context.AccountId}]: {string.Join(' ', buffers.Select(x=> x.ToString("X")))}");
             this.Load();
-            var secondItemIsExisted = await this.CheckItemexExisted(this.SecondItem);
-            if (!secondItemIsExisted)
+            var itemLen = await this.CheckItemExisted([FirstItem, SecondItem]);
+            if (itemLen != 2)
             {
                 _logger.Critical($"acc_id={context.AccountId} char_name={context.CharName} usage second itemex_id dose not existed.");
                 return;
             }
-            var firstItemIsExisted = await this.CheckItemexExisted(this.FirstItem);
-            if (!firstItemIsExisted)
-            {
-                _logger.Critical($"acc_id={context.AccountId} char_name={context.CharName} usage first itemex_id dose not existed.");
-                return;
-            }
+            
             await _proxy.SendAsync(buffers, cancellationToken);
 			_logger.Info($"acc_id={context.AccountId} char_name={context.CharName} usage first_item_id={FirstItem} & second_item_id={SecondItem}");
             return;
@@ -48,15 +43,15 @@ namespace GameServer.Packets
             this.SecondItem = _reader.ReadUInt32();
         }
 
-        private async Task<bool> CheckItemexExisted(uint id)
+        private async Task<int> CheckItemExisted(uint[] lstId)
         {
             var json = await _databaseService.ExecuteAsync(new QueryNative
             {
-                Sql = string.Format(SqlNative.SQL_GET_ITEMEX_BY_ID, id),
+                Sql = string.Format(SqlNative.SQL_GET_ITEMEX_BY_ID, string.Join(',', lstId)),
                 Payload = []
             });
             var items = JsonSerializer.Deserialize(json, ApplicationJsonContext.Default.ItemexEntityArray);
-            return items.Length > 0;
+            return items.Length;
         }
     }
 }
