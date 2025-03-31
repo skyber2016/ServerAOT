@@ -1,7 +1,6 @@
-﻿using System.Net.Sockets;
-using System.Text.Json;
-using Core;
+﻿using Core;
 using Microsoft.Extensions.DependencyInjection;
+using System.Net.Sockets;
 
 namespace GameServer
 {
@@ -44,7 +43,7 @@ namespace GameServer
                 }
             }
             caching.Set($"{key}:CURRENT", optionChoise, ApplicationInfo.TimeSpanMax);
-            if(!caching.TryGetValue($"{key}:{optionChoise}", out NpcDelayEntity npcDelay))
+            if (!caching.TryGetValue($"{key}:{optionChoise}", out NpcDelayEntity npcDelay))
             {
                 await _proxy.SendAsync(buffers);
                 return;
@@ -56,7 +55,7 @@ namespace GameServer
                 if (remaining > TimeSpan.Zero)
                 {
                     string formattedTime = $"{remaining.Hours:D2}:{remaining.Minutes:D2}:{remaining.Seconds:D2}";
-                    string msg = $"You must wait {formattedTime} before performing this action again.";
+                    string msg = $"[{context.AccountId} {context.CharName}] must wait {formattedTime} before performing this action again.";
                     _logger.Info(msg);
                     //await _notiService.SendNotification(_client, NotificationType.System, context.AccountId, msg, cancellationToken);
                     return;

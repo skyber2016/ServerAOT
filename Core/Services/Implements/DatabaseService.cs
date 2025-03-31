@@ -22,7 +22,7 @@ namespace Core
 
         public async Task<string> ExecuteAsync(QueryNative query, CancellationToken cancellationToken = default)
         {
-            if(query == null)
+            if (query == null)
             {
                 throw new ArgumentNullException($"Property {nameof(query)} cannot be null");
             }

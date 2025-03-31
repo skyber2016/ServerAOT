@@ -1,9 +1,9 @@
-﻿using System.Text.Json;
-using Core;
+﻿using Core;
 using GameServer;
 using GameServer.Packets;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Text.Json;
 
 using IHost host = Host.CreateDefaultBuilder()
         .ConfigureServices((_, services) =>
@@ -18,15 +18,27 @@ var _serviceProvider = host.Services;
 
 var _logger = LoggerManager.CreateLogger();
 
+void WriteLog(string message, Exception ex)
+{
+    if (ex.InnerException != null)
+    {
+        WriteLog(message, ex.InnerException);
+    }
+    _logger.Critical($"{message} {ex.Message}");
+    _logger.Critical($"{message} {ex.StackTrace}");
+}
+
 AppDomain.CurrentDomain.UnhandledException += (sender, args) =>
 {
     if (args.ExceptionObject is Exception exception)
-        _logger.Critical(exception.GetBaseException().Message);
+    {
+        WriteLog("[Unhandled] ", exception);
+    }
 };
 
 TaskScheduler.UnobservedTaskException += (sender, e) =>
 {
-    _logger.Critical($"[Unobserved Task] {e.Exception.GetBaseException().Message}");
+    WriteLog("[Unobserved Task] ", e.Exception);
     e.SetObserved(); // Đánh dấu lỗi đã được xử lý để tránh crash
 };
 
@@ -41,7 +53,7 @@ Console.CancelKeyPress += (sender, eventArgs) =>
 };
 
 
-PacketRegistry.TryAdd(PacketType.UserInfoRequest, (c, s, channel) => new UserInfoRequestPacket(c, s, channel));
+PacketRegistry.TryAdd(PacketType.UserInfoRequest, (c, s, channel) => new UserInfoRequestPacket(c, s, channel, _serviceProvider));
 //PacketRegistry.TryAdd(PacketType.RobotRepsonse, (c, s, channel) => new RobotResponsePacket(c, s, channel));
 PacketRegistry.TryAdd(PacketType.ClickNpcRequest, (c, s, channel) => new NpcClickActionPacket(c, s, channel, _serviceProvider));
 PacketRegistry.TryAdd(PacketType.NPCAction, (c, s, channel) => new NpcActionPacket(c, s, channel, _serviceProvider));
@@ -53,7 +65,7 @@ await Worker(cts.Token);
 async Task Worker(CancellationToken ct)
 {
     _logger.Debug("Loading cq_npc_delay...");
-   ApplicationContext.Instance.NpcDelays = await GetDelays(ct);
+    ApplicationContext.Instance.NpcDelays = await GetDelays(ct);
     _logger.Debug($"Loaded {ApplicationContext.Instance.NpcDelays.Length} cq_npc_delay");
     var server = _serviceProvider.GetRequiredService<AServerHandler>();
     server.Init();

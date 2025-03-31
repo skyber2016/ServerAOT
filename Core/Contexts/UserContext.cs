@@ -4,6 +4,7 @@
     {
         public uint AccountId { get; set; }
         public uint TokenId { get; set; }
+        public string CharName { get; set; } = string.Empty;
         /// <summary>
         /// Offset: 816
         /// </summary>

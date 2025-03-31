@@ -1,5 +1,5 @@
-﻿using System.Net.Sockets;
-using Core;
+﻿using Core;
+using System.Net.Sockets;
 
 namespace GameServer
 {

@@ -1,6 +1,6 @@
-﻿using System.Net.Sockets;
+﻿using Core;
+using System.Net.Sockets;
 using System.Text;
-using Core;
 
 namespace LoginServer
 {

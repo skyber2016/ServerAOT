@@ -16,7 +16,7 @@ public class LoggerManager : ILogger, IDisposable
     public LoggerManager()
     {
         _requestId = "NONE";
-        _minLogLevel = LogLevel.Info;
+        _minLogLevel = LogLevel.Debug;
         _logTask = Task.Run(ProcessQueueAsync);
     }
     private static Lazy<ILogger> _logger = new(() => new LoggerManager());

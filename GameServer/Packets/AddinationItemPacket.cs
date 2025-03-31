@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Sockets;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
-using Core;
+﻿using Core;
 using Microsoft.Extensions.DependencyInjection;
+using System.Net.Sockets;
+using System.Text.Json;
+using System.Linq;
 
 namespace GameServer.Packets
 {
@@ -26,20 +22,22 @@ namespace GameServer.Packets
         protected override async Task PacketHandleAsync(UserContext context, CancellationToken cancellationToken)
         {
             var buffers = _memoryStream.ToArray();
+			_logger.Debug($"Addination item [acc_id={context.AccountId}]: {string.Join(' ', buffers.Select(x=> x.ToString("X")))}");
             this.Load();
-            var secondItemIsExisted = await this.CheckItemExisted(this.SecondItem);
+            var secondItemIsExisted = await this.CheckItemexExisted(this.SecondItem);
             if (!secondItemIsExisted)
             {
-                _logger.Critical($"acc_id={context.AccountId} usage second itemex_id dose not existed.");
+                _logger.Critical($"acc_id={context.AccountId} char_name={context.CharName} usage second itemex_id dose not existed.");
                 return;
             }
-            var firstItemIsExisted = await this.CheckItemExisted(this.FirstItem);
+            var firstItemIsExisted = await this.CheckItemexExisted(this.FirstItem);
             if (!firstItemIsExisted)
             {
-                _logger.Critical($"acc_id={context.AccountId} usage first itemex_id dose not existed.");
+                _logger.Critical($"acc_id={context.AccountId} char_name={context.CharName} usage first itemex_id dose not existed.");
                 return;
             }
             await _proxy.SendAsync(buffers, cancellationToken);
+			_logger.Info($"acc_id={context.AccountId} char_name={context.CharName} usage first_item_id={FirstItem} & second_item_id={SecondItem}");
             return;
         }
 
@@ -50,7 +48,7 @@ namespace GameServer.Packets
             this.SecondItem = _reader.ReadUInt32();
         }
 
-        private async Task<bool> CheckItemExisted(uint id)
+        private async Task<bool> CheckItemexExisted(uint id)
         {
             var json = await _databaseService.ExecuteAsync(new QueryNative
             {

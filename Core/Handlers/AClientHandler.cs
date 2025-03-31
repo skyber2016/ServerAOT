@@ -110,7 +110,7 @@ public abstract class AClientHandler : IDisposable
 
         // Lấy độ dài packet từ 2 byte đầu tiên
         uint packetLength = BitConverter.ToUInt16(buffers, index);
-        if(packetLength == 0)
+        if (packetLength == 0)
         {
             return false;
         }

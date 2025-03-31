@@ -17,7 +17,7 @@ namespace Core
 
         public async Task<bool> SetAsync(string key, string value, TimeSpan? expiry = null)
         {
-            if(expiry == TimeSpan.Zero)
+            if (expiry == TimeSpan.Zero)
             {
                 return false;
             }

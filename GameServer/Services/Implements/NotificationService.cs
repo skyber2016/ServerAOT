@@ -1,8 +1,8 @@
-﻿using System.Net.Sockets;
+﻿using Core;
+using Microsoft.Extensions.DependencyInjection;
+using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
-using Core;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace GameServer
 {
@@ -14,7 +14,7 @@ namespace GameServer
             _databaseService = serviceProvider.GetRequiredService<IDatabaseService>();
         }
 
-        public async Task SendNotification(Socket client, NotificationType type, uint accountId,  string message, CancellationToken cancellation = default)
+        public async Task SendNotification(Socket client, NotificationType type, uint accountId, string message, CancellationToken cancellation = default)
         {
             var user = await this.GetUserByAccountId(accountId, cancellation);
             if (user == null) return;
