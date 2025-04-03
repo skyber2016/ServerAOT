@@ -13,27 +13,30 @@ namespace GameServer.Packets
 
         private readonly ILogger _logger = LoggerManager.CreateLogger();
         private readonly IDatabaseService _databaseService;
+        private readonly IMemoryCacheService _memoryCache;
 
         public AddinationItemPacket(Socket client, Socket proxy, Channel channel, IServiceProvider serviceProvider) : base(client, proxy, channel)
         {
             _databaseService = serviceProvider.GetRequiredService<IDatabaseService>();
+            _memoryCache = ApplicationContext.Instance.Caching;
         }
 
         protected override async Task PacketHandleAsync(UserContext context, CancellationToken cancellationToken)
         {
             var buffers = _memoryStream.ToArray();
-			_logger.Debug($"Addination item [acc_id={context.AccountId}]: {string.Join(' ', buffers.Select(x=> x.ToString("X")))}");
-            this.Load();
-            var secondItemIsExisted = await this.CheckItemexExisted(this.SecondItem);
-            if (!secondItemIsExisted)
+            if(_channel == Channel.S2C)
             {
-                _logger.Critical($"acc_id={context.AccountId} char_name={context.CharName} usage second itemex_id dose not existed.");
+                _logger.Info($"Skipped to check item exist");
+                await _client.SendAsync(buffers);
                 return;
             }
-            var firstItemIsExisted = await this.CheckItemexExisted(this.FirstItem);
-            if (!firstItemIsExisted)
+			_logger.Debug($"Addination item [acc_id={context.AccountId}]: {string.Join(' ', buffers.Select(x=> x.ToString("X")))}");
+            this.Load();
+            
+            var itemLen = await this.CountItemex(this.FirstItem, this.SecondItem);
+            if (itemLen != 2)
             {
-                _logger.Critical($"acc_id={context.AccountId} char_name={context.CharName} usage first itemex_id dose not existed.");
+                _logger.Critical($"acc_id={context.AccountId} char_name={context.CharName} usage item_id=[{FirstItem} {SecondItem}] dose not existed.");
                 return;
             }
             await _proxy.SendAsync(buffers, cancellationToken);
@@ -47,16 +50,24 @@ namespace GameServer.Packets
             this.FirstItem = _reader.ReadUInt32();
             this.SecondItem = _reader.ReadUInt32();
         }
-
-        private async Task<bool> CheckItemexExisted(uint id)
+        private async Task DeleteItem(uint itemId)
         {
             var json = await _databaseService.ExecuteAsync(new QueryNative
             {
-                Sql = string.Format(SqlNative.SQL_GET_ITEMEX_BY_ID, id),
+                Sql = string.Format(SqlNative.SQL_DELETE_ITEMEX_BY_ID, itemId),
+                Payload = []
+            });
+            _logger.Info($"Deleted item_id={itemId} result={json}");
+        }
+        private async Task<int> CountItemex(uint first, uint second)
+        {
+            var json = await _databaseService.ExecuteAsync(new QueryNative
+            {
+                Sql = string.Format(SqlNative.SQL_GET_ITEMEX_BY_ID, first, second),
                 Payload = []
             });
             var items = JsonSerializer.Deserialize(json, ApplicationJsonContext.Default.ItemexEntityArray);
-            return items.Length > 0;
+            return items.Length;
         }
     }
 }

@@ -28,6 +28,7 @@ public class GameServerHandler : AServerHandler
             await handler.HandleAsync(cancellationToken);
             ClientRegistry.Remove(client);
             Console.WriteLine($"Client {client.RemoteEndPoint} has disconnected");
+            handler.Dispose();
         }, cancellationToken);
     }
 

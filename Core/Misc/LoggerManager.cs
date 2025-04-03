@@ -40,7 +40,26 @@ public class LoggerManager : ILogger, IDisposable
     public void Warning(string message, [CallerMemberName] string memberName = "", [CallerFilePath] string callerFile = "") => Log(LogLevel.Warning, message, $"{Path.GetFileNameWithoutExtension(callerFile)}.{memberName}");
     public void Error(string message, [CallerMemberName] string memberName = "", [CallerFilePath] string callerFile = "") => Log(LogLevel.Error, message, $"{Path.GetFileNameWithoutExtension(callerFile)}.{memberName}");
     public void Critical(string message, [CallerMemberName] string memberName = "", [CallerFilePath] string callerFile = "") => Log(LogLevel.Critical, message, $"{Path.GetFileNameWithoutExtension(callerFile)}.{memberName}");
-
+    public void Error(string message, Exception ex, [CallerMemberName] string memberName = "", [CallerFilePath] string callerFile = "")
+    {
+        if (ex.InnerException != null)
+        {
+            this.Error(message, ex, memberName, callerFile);
+        }
+        Log(LogLevel.Error, message, $"{Path.GetFileNameWithoutExtension(callerFile)}.{memberName}");
+        Log(LogLevel.Error, ex.Message, $"{Path.GetFileNameWithoutExtension(callerFile)}.{memberName}");
+        Log(LogLevel.Error, ex.StackTrace, $"{Path.GetFileNameWithoutExtension(callerFile)}.{memberName}");
+    }
+    public void Critical(string message, Exception ex, [CallerMemberName] string memberName = "", [CallerFilePath] string callerFile = "")
+    {
+        if (ex.InnerException != null)
+        {
+            this.Error(message, ex, memberName, callerFile);
+        }
+        Log(LogLevel.Critical, message, $"{Path.GetFileNameWithoutExtension(callerFile)}.{memberName}");
+        Log(LogLevel.Critical, ex.Message, $"{Path.GetFileNameWithoutExtension(callerFile)}.{memberName}");
+        Log(LogLevel.Critical, ex.StackTrace, $"{Path.GetFileNameWithoutExtension(callerFile)}.{memberName}");
+    }
     private async Task ProcessQueueAsync()
     {
         using StreamWriter writer = new(_filePath, append: true, Encoding.UTF8);

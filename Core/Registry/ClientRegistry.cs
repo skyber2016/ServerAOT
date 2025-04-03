@@ -10,7 +10,6 @@ public static class ClientRegistry
     {
         if (_servers.ContainsKey(client))
         {
-            _servers[client].Dispose();
             _servers.Remove(client);
         }
     }

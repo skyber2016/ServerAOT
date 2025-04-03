@@ -18,6 +18,10 @@ namespace Core
 
         public void Set(string key, object value, TimeSpan ttl)
         {
+            if(ttl == TimeSpan.MaxValue)
+            {
+                ttl = ApplicationInfo.TimeSpanMax;
+            }
             var expirationTime = DateTime.Now.Add(ttl);
             var item = new CacheItem(value, expirationTime);
             _cache[key] = item;

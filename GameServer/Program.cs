@@ -9,7 +9,6 @@ using IHost host = Host.CreateDefaultBuilder()
         .ConfigureServices((_, services) =>
         {
             services.AddSingleton<AServerHandler, GameServerHandler>();
-            services.AddSingleton<IRedisService, RedisService>();
             services.AddSingleton<IDatabaseService, DatabaseService>();
             services.AddSingleton<INotificationService, NotificationService>();
         })
@@ -58,7 +57,7 @@ PacketRegistry.TryAdd(PacketType.UserInfoRequest, (c, s, channel) => new UserInf
 PacketRegistry.TryAdd(PacketType.ClickNpcRequest, (c, s, channel) => new NpcClickActionPacket(c, s, channel, _serviceProvider));
 PacketRegistry.TryAdd(PacketType.NPCAction, (c, s, channel) => new NpcActionPacket(c, s, channel, _serviceProvider));
 PacketRegistry.TryAdd(PacketType.AddinationItemRequest, (c, s, channel) => new AddinationItemPacket(c, s, channel, _serviceProvider));
-PacketRegistry.TryAdd(PacketType.UserInfoResponse, (c, s, channel) => new UserInfoPacket(c, s, channel));
+PacketRegistry.TryAdd(PacketType.UserInfoResponse, (c, s, channel) => new UserInfoPacket(c, s, channel, _serviceProvider));
 
 
 await Worker(cts.Token);
